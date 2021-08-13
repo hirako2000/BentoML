@@ -7,7 +7,8 @@ from bentoml.service.env import BentoServiceEnv
 
 
 class OnnxMlirModelArtifact(BentoServiceArtifact):
-    """Abstraction for saving/loading onnx-mlir compiled model and operationalized
+    """
+    Artifact class for saving/loading onnx-mlir compiled model and operationalized
     using pyruntime wrapper
 
     onnx-mlir is a compiler technology that can take an onnx model and lower it
@@ -87,7 +88,7 @@ class OnnxMlirModelArtifact(BentoServiceArtifact):
     """
 
     def __init__(self, name):
-        super(OnnxMlirModelArtifact, self).__init__(name)
+        super().__init__(name)
         self._inference_session = None
         self._model_so_path = None
 
@@ -96,7 +97,7 @@ class OnnxMlirModelArtifact(BentoServiceArtifact):
         return os.path.join(base_path, self.name + '.so')
 
     def pack(self, onnxmlir_model_so, metadata=None):
-        # pylint:disable=arguments-differ
+        # pylint:disable=arguments-renamed
         self._model_so_path = onnxmlir_model_so
         return self
 

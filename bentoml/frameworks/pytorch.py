@@ -29,7 +29,7 @@ def _is_pytorch_lightning_model_file_like(path):
 
 class PytorchModelArtifact(BentoServiceArtifact):
     """
-    Abstraction for saving/loading objects with torch.save and torch.load
+    Artifact class for saving/loading objects with torch.save and torch.load
 
     Args:
         name (string): name of the artifact
@@ -84,14 +84,14 @@ class PytorchModelArtifact(BentoServiceArtifact):
     """
 
     def __init__(self, name, file_extension=".pt"):
-        super(PytorchModelArtifact, self).__init__(name)
+        super().__init__(name)
         self._file_extension = file_extension
         self._model = None
 
     def _file_path(self, base_path):
         return os.path.join(base_path, self.name + self._file_extension)
 
-    def pack(self, model, metadata=None):  # pylint:disable=arguments-differ
+    def pack(self, model, metadata=None):  # pylint:disable=arguments-renamed
         try:
             import torch
         except ImportError:
@@ -163,7 +163,8 @@ class PytorchModelArtifact(BentoServiceArtifact):
 
 
 class PytorchLightningModelArtifact(BentoServiceArtifact):
-    """Abstraction for saving and loading pytorch lightning model
+    """
+    Artifact class for saving and loading pytorch lightning model
 
     Args:
         name (string): Name of the pytorch model
@@ -210,14 +211,14 @@ class PytorchLightningModelArtifact(BentoServiceArtifact):
     """
 
     def __init__(self, name):
-        super(PytorchLightningModelArtifact, self).__init__(name)
+        super().__init__(name)
         self._model = None
         self._model_path = None
 
     def _saved_model_file_path(self, base_path):
         return os.path.join(base_path, self.name + '.pt')
 
-    def pack(self, path_or_model, metadata=None):  # pylint:disable=arguments-differ
+    def pack(self, path_or_model, metadata=None):  # pylint:disable=arguments-renamed
         if _is_pytorch_lightning_model_file_like(path_or_model):
             logger.info(
                 'PytorchLightningArtifact is packing a saved torchscript module '

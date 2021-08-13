@@ -5,7 +5,6 @@ from bentoml.service.artifacts import BentoServiceArtifact
 from bentoml.service.env import BentoServiceEnv
 import tempfile
 
-
 try:
     import paddle
     import paddle.inference as paddle_infer
@@ -14,7 +13,8 @@ except ImportError:
 
 
 class PaddlePaddleModelArtifact(BentoServiceArtifact):
-    """Abstraction for saving/loading PaddlePaddle models
+    """
+    Artifact class for saving and loading PaddlePaddle's PaddleInference model
 
     Args:
         name (string): name of the artifact
@@ -26,6 +26,7 @@ class PaddlePaddleModelArtifact(BentoServiceArtifact):
     Example usage:
 
     >>> import pandas as pd
+    >>> import numpy as np
     >>>
     >>> from bentoml import env, artifacts, api, BentoService
     >>> from bentoml.adapters import DataframeInput
@@ -57,7 +58,7 @@ class PaddlePaddleModelArtifact(BentoServiceArtifact):
     """
 
     def __init__(self, name: str):
-        super(PaddlePaddleModelArtifact, self).__init__(name)
+        super().__init__(name)
         self._model = None
         self._predictor = None
         self._model_path = None
@@ -67,7 +68,7 @@ class PaddlePaddleModelArtifact(BentoServiceArtifact):
                 "paddlepaddle package is required to use PaddlePaddleModelArtifact"
             )
 
-    def pack(self, model):  # pylint:disable=arguments-differ
+    def pack(self, model, metadata=None):  # pylint:disable=arguments-differ
         self._model = model
         return self
 

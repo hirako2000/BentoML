@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 import inspect
 import logging
 import multiprocessing
@@ -22,10 +23,10 @@ import subprocess
 import sys
 import tempfile
 import threading
-import uuid
-from datetime import datetime
-from dependency_injector.wiring import Provide, inject
 from typing import List
+import uuid
+
+from simple_di import Provide, inject
 
 from bentoml.adapters import BaseInputAdapter, BaseOutputAdapter, DefaultOutput
 from bentoml.configuration.containers import BentoMLContainer
@@ -536,7 +537,7 @@ class BentoService:
                 )
 
     def _config_artifacts(self):
-        self._artifacts = ArtifactCollection.from_artifact_list(
+        self._artifacts = ArtifactCollection.from_declared_artifact_list(
             self._declared_artifacts
         )
 
@@ -624,9 +625,10 @@ class BentoService:
         """
         :return: BentoService name
         """
-        return self.__class__.name()  # pylint: disable=no-value-for-parameter
+        return self.__class__.name  # pylint: disable=no-value-for-parameter
 
     @name.classmethod
+    @property
     def name(cls):  # pylint: disable=no-self-argument,invalid-overridden-method
         """
         :return: BentoService name
@@ -718,6 +720,14 @@ class BentoService:
             self.set_version(self.versioneer())
 
         return self._bento_service_version
+
+    @property
+    def tag(self):
+        """
+        Bento tag is simply putting its name and version together, separated by a colon
+        `tag` is mostly used in Yatai model management related APIs and operations
+        """
+        return f"{self.name}:{self.version}"
 
     def save(self, yatai_url=None, version=None, labels=None):
         """

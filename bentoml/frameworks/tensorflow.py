@@ -23,10 +23,10 @@ def _is_path_like(p):
 
 
 class _TensorflowFunctionWrapper:
-    '''
+    """
     TensorflowFunctionWrapper
     transform input tensor following function input signature
-    '''
+    """
 
     def __init__(self, origin_func, arg_names=None, arg_specs=None, kwarg_specs=None):
         self.origin_func = origin_func
@@ -127,7 +127,7 @@ def _load_tf_saved_model(path):
 
 class TensorflowSavedModelArtifact(BentoServiceArtifact):
     """
-    Abstraction for saving/loading Tensorflow model in tf.saved_model format
+    Artifact class for saving/loading Tensorflow model in tf.saved_model format
 
     Args:
         name (string): name of the artifact
@@ -182,7 +182,7 @@ class TensorflowSavedModelArtifact(BentoServiceArtifact):
     """
 
     def __init__(self, name):
-        super(TensorflowSavedModelArtifact, self).__init__(name)
+        super().__init__(name)
 
         self._model = None
         self._tmpdir = None

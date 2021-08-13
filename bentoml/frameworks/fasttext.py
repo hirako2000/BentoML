@@ -7,7 +7,7 @@ from bentoml.service.env import BentoServiceEnv
 
 class FasttextModelArtifact(BentoServiceArtifact):
     """
-    Abstraction for saving/loading fasttext models
+    Artifact class for saving and loading fasttext models
 
     Args:
         name (str): Name for the artifact
@@ -40,8 +40,8 @@ class FasttextModelArtifact(BentoServiceArtifact):
     >>> svc.pack('model', model)
     """
 
-    def __init__(self, name):
-        super(FasttextModelArtifact, self).__init__(name)
+    def __init__(self, name: str):
+        super().__init__(name)
 
         self._model = None
 
@@ -52,7 +52,7 @@ class FasttextModelArtifact(BentoServiceArtifact):
     def _model_file_path(self, base_path):
         return os.path.join(base_path, self.name)
 
-    def pack(self, fasttext_model, metadata=None):  # pylint:disable=arguments-differ
+    def pack(self, fasttext_model, metadata=None):  # pylint:disable=arguments-renamed
         try:
             import fasttext  # noqa # pylint: disable=unused-import
         except ImportError:

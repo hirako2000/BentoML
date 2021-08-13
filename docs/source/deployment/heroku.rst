@@ -9,6 +9,7 @@ This guide demonstrates how to deploy a scikit-learn based iris classifier model
 BentoML to Heroku. The same deployment steps are also applicable for models
 trained with other machine learning frameworks, see more BentoML examples :doc:`here <../examples>`.
 
+
 Prerequisites
 -------------
 
@@ -24,7 +25,7 @@ Prerequisites
 
     * .. code-block:: bash
 
-            pip install bentoml scikit-learn
+            > pip install bentoml scikit-learn
 
 
 
@@ -37,9 +38,9 @@ BentoML saved bundle for deployment:
 
 .. code-block:: bash
 
-    git clone git@github.com:bentoml/BentoML.git
-    pip install -r ./bentoml/guides/quick-start/requirements.txt
-    python ./bentoml/guides/quick-start/main.py
+    > git clone git@github.com:bentoml/BentoML.git
+    > pip install -r ./bentoml/guides/quick-start/requirements.txt
+    > python ./bentoml/guides/quick-start/main.py
 
 Verify the saved bundle created:
 
@@ -105,72 +106,62 @@ BentoService and available for sending test request:
 Build and deploy to Heroku
 ==========================
 
-
-Follow the CLI instruction and login to a Heroku account:
-
-.. code-block:: bash
-
-    heroku login
-
-Login to the Heroku Container Registry:
+Download and Install BentoML Heroku deployment tool
 
 .. code-block:: bash
 
-    heroku container:login
+    > git clone https://github.com/bentoml/heroku-deploy.git
+    > cd heroku-deploy
+    > pip install -r requirements.txt
 
 
-Create a Heroku app:
+Create a Heroku deployment
 
-.. code-block:: bash
+** Available configuration options for Heroku deployment
 
-    APP_NAME=bentoml-her0ku-$(date +%s | base64 | tr '[:upper:]' '[:lower:]' | tr -dc _a-z-0-9)
-    heroku create $APP_NAME
-
-
-Find the IrisClassifier SavedBundle directory:
-
-.. code-block:: bash
-
-    cd $(bentoml get IrisClassifier:latest --print-location --quiet)
-
-
-
-
-Build and push API server container with the SavedBundle, and push to the Heroku app
-`bentoml-iris-classifier` created above:
+* `dyno_count`: Number of Dyno for the deployment
+* `dyno_type`: Dyno instance type. Default is `free`
 
 .. code-block:: bash
 
-    heroku container:push web --app $APP_NAME
+    > BENTO_BUNDLE=$(bentoml get IrisClassifier:latest --print-location -q)
+    > python deploy.py $BENTO_BUNDLE my_deployment heroku_config.json
 
 
-Release the app:
+=====================
+Get deployment status
+=====================
 
-.. code-block:: bash
-
-    heroku container:release web --app $APP_NAME
-
-
-To view the deployment logs on heroku and verify the web server has been created:
+Get deployment information
 
 .. code-block:: bash
 
-    heroku logs --tail -a $APP_NAME
+    python describe.py my_deployment
 
-Now, make prediction request with sample data:
+===================================
+Test deployment with sample request
+===================================
 
-.. code-block:: bash
-
-    curl -i \
-      --header "Content-Type: application/json" \
-      --request POST \
-      --data '[[5.1, 3.5, 1.4, 0.2]]' \
-      $(heroku apps:info --app $APP_NAME -j | jq -r ".app.web_url")/predict
-
-
-Remove deployment on Heroku
+Make request to the Heroku deployment
 
 .. code-block:: bash
 
-    heroku apps:destroy $APP_NAME
+    curl  curl -i \
+    --header "Content-Type: application/json" \
+    --request POST \
+    --data '[[5.1, 3.5, 1.4, 0.2]]' \
+    https://btml-my_deployment.herokuapp.com/predict
 
+========================
+Delete Heroku deployment
+========================
+
+.. code-block:: bash
+
+    python delete.py my_deployment
+
+
+
+.. spelling::
+
+    Dyno

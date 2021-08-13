@@ -1,18 +1,19 @@
 import atexit
+from concurrent import futures
 import logging
 import os
 import subprocess
 import time
-from concurrent import futures
 
 import certifi
 import click
+from simple_di import Provide, inject
+
 from bentoml.configuration import get_debug_mode
 from bentoml.configuration.containers import BentoMLContainer
 from bentoml.exceptions import BentoMLException
 from bentoml.utils import reserve_free_port
 from bentoml.yatai.utils import ensure_node_available_or_raise, parse_grpc_url
-from dependency_injector.wiring import Provide, inject
 
 
 @inject
@@ -32,6 +33,9 @@ def get_yatai_service(
     repository_type: str = Provide[BentoMLContainer.config.yatai.repository.type],
     file_system_directory: str = Provide[BentoMLContainer.yatai_file_system_directory],
     s3_url: str = Provide[BentoMLContainer.config.yatai.repository.s3.url],
+    s3_endpoint_url: str = Provide[
+        BentoMLContainer.config.yatai.repository.s3.endpoint_url
+    ],
     gcs_url: str = Provide[BentoMLContainer.config.yatai.repository.gcs.url],
 ):
     if channel_address:
@@ -79,7 +83,7 @@ def get_yatai_service(
         logger.debug("Creating local YataiService instance")
         return LocalYataiService(
             repository=create_repository(
-                repository_type, file_system_directory, s3_url, gcs_url
+                repository_type, file_system_directory, s3_url, s3_endpoint_url, gcs_url
             ),
             database=DB(db_url),
             default_namespace=default_namespace,
@@ -88,19 +92,20 @@ def get_yatai_service(
 
 @inject
 def start_yatai_service_grpc_server(
-    db_url,
-    grpc_port,
-    ui_port,
-    with_ui,
-    base_url,
-    repository_type,
-    file_system_directory,
-    s3_url,
-    s3_endpoint_url,
-    gcs_url,
+    db_url: str,
+    grpc_port: int,
+    ui_port: int,
+    with_ui: bool,
+    base_url: str,
+    repository_type: str,
+    file_system_directory: str,
+    s3_url: str,
+    s3_endpoint_url: str,
+    gcs_url: str,
     web_ui_log_path: str = Provide[BentoMLContainer.yatai_logging_path],
+    yatai_metrics_client=Provide[BentoMLContainer.yatai_metrics_client],
 ):
-    # Lazily import grpcio for YataiSerivce gRPC related actions
+    # Lazily import grpcio for YataiService gRPC related actions
     import grpc
     from bentoml.yatai.db import DB
     from bentoml.yatai.repository import create_repository
@@ -111,7 +116,6 @@ def start_yatai_service_grpc_server(
         PromServerInterceptor,
         ServiceLatencyInterceptor,
     )
-    from prometheus_client import start_http_server
 
     YataiServicerImpl = get_yatai_service_impl(YataiServicer)
     yatai_service = YataiServicerImpl(
@@ -147,7 +151,7 @@ def start_yatai_service_grpc_server(
     server.add_insecure_port(f"[::]:{grpc_port}")
 
     # NOTE: the current implementation sets prometheus_port to
-    # 50052 to accomodate with Makefile setups. Currently there
+    # 50052 to accommodate with Makefile setups. Currently there
     # isn't a way to find the reserve_free_port dynamically inside
     # Makefile to find the free ports for prometheus_port without
     # the help of a shell scripts.
@@ -155,7 +159,7 @@ def start_yatai_service_grpc_server(
     with reserve_free_port() as port:
         prometheus_port = port
     # prevents wsgi to see prometheus_port as used
-    start_http_server(prometheus_port)
+    yatai_metrics_client.start_http_server(prometheus_port)
     server.start()
     if with_ui:
         ensure_node_available_or_raise()
